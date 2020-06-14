@@ -28,6 +28,7 @@ import org.hibernate.transform.Transformers;
 
 import Hibernate.controller.Database;
 import Hibernate.model.BookStatus;
+import Hibernate.model.BookType;
 import Hibernate.model.Books;
 
 import javax.swing.JScrollPane;
@@ -37,6 +38,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.ObjectInputFilter.Status;
 import java.util.List;
+import javax.swing.JComboBox;
 
 public class BookList extends JFrame {
 
@@ -49,6 +51,7 @@ public class BookList extends JFrame {
 	private JTextField txtISBN;
 	private JTextField txtBookType;
 	private JTextField txtStatus;
+	static JComboBox cboBookType = new JComboBox();
 
 	/**
 	 * Launch the application.
@@ -59,6 +62,7 @@ public class BookList extends JFrame {
 		ab.cboType();
 		view.comboCourse();
 		view.comboStrand();
+		cboType();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -76,6 +80,21 @@ public class BookList extends JFrame {
 	 * Create the frame.
 	 */
 	
+	public static void cboType() {
+		Session session = Database.getSession();
+		try {
+			String sql ="SELECT BookTypeID AS booktypeid,"
+					+ "BookType AS booktype FROM BookType";
+			Query query = session.createSQLQuery(sql);
+			query.setResultTransformer(Transformers.aliasToBean(BookType.class));
+			List<BookType> StandList = query.list();
+			for(BookType strand : StandList) {
+				cboBookType.addItem(strand.getBooktype());
+			}
+		}catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
 	//METHODS FOR EVENTS
 	//FOR CLEAR TEXTBOX AFTER INSERT
 	public void clearText() {
@@ -200,6 +219,8 @@ public class BookList extends JFrame {
 		lblNewLabel_2.setBounds(10, 240, 84, 14);
 		contentPane.add(lblNewLabel_2);
 		
+		
+		
 		txtBookID = new JTextField();
 		txtBookID.setEditable(false);
 		txtBookID.setBounds(104, 240, 96, 20);
@@ -252,19 +273,20 @@ public class BookList extends JFrame {
 		contentPane.add(lblNewLabel_2_1_3);
 		
 		txtBookType = new JTextField();
+		txtBookType.setEditable(false);
 		txtBookType.setColumns(10);
-		txtBookType.setBounds(456, 267, 133, 20);
+		txtBookType.setBounds(456, 296, 133, 20);
 		contentPane.add(txtBookType);
 		
 		JLabel lblNewLabel_2_1_4 = new JLabel("Book Status:");
 		lblNewLabel_2_1_4.setFont(new Font("Arial", Font.PLAIN, 15));
-		lblNewLabel_2_1_4.setBounds(362, 298, 84, 14);
+		lblNewLabel_2_1_4.setBounds(362, 325, 84, 14);
 		contentPane.add(lblNewLabel_2_1_4);
 		
 		txtStatus = new JTextField();
 		txtStatus.setEditable(false);
 		txtStatus.setColumns(10);
-		txtStatus.setBounds(456, 292, 133, 20);
+		txtStatus.setBounds(456, 323, 133, 20);
 		contentPane.add(txtStatus);
 		
 		JButton btnEdit = new JButton("Edit");
@@ -272,34 +294,39 @@ public class BookList extends JFrame {
 			Session session = Database.getSession();
 			Transaction tx = null;
 			public void actionPerformed(ActionEvent e) {
-				int BookID = Integer.parseInt(txtBookID.getText());
-				String sql ="SELECT BookID AS bookid, "
-						+ "BookName AS bookname, Page AS page, "
-						+ "Author AS author, ISBN AS isbn, BookType AS booktype, BookStatus AS bookstatus FROM Books "
-						+ "WHERE id = :bid";
-				Query query = session.createSQLQuery(sql);
-				query.setParameter("bid",BookID);
-				query.setResultTransformer(Transformers.aliasToBean(Books.class));
-				Books book = (Books)query.uniqueResult();
-				//
-				String BookName = txtBookName.getText();
-				int Page = Integer.parseInt(txtPages.getText());
-				String Author = txtAuthor.getText();
-				int ISBN = Integer.parseInt(txtISBN.getText());
-				String BookType = txtBookType.getText();
-				String BookStat = txtStatus.getText();
-				tx = session.beginTransaction();
-				book.setBookname(BookName);
-				book.setPage(Page);
-				book.setAuthor(Author);
-				book.setIsbn(ISBN);
-				book.setBooktype(BookType);
-				book.setBookstatus(BookStat);
-				session.update(book);
-				tx.commit();
-				JOptionPane.showMessageDialog(null, "Book With ID " + book.getBookid() + "Is Updated");
-				tblRefresh();
-				clearText();
+				if(txtBookID.getText().trim().isEmpty() && txtBookName.getText().trim().isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Please Select a Student to Edit");
+					clearText();
+				}else {
+					int BookID = Integer.parseInt(txtBookID.getText());
+					String sql ="SELECT BookID AS bookid, "
+							+ "BookName AS bookname, Page AS page, "
+							+ "Author AS author, ISBN AS isbn, BookType AS booktype, BookStatus AS bookstatus FROM Books "
+							+ "WHERE BookID = :bid";
+					Query query = session.createSQLQuery(sql);
+					query.setParameter("bid", BookID);
+					query.setResultTransformer(Transformers.aliasToBean(Books.class));
+					Books book = (Books)query.uniqueResult();
+					//
+					String BookName = txtBookName.getText();
+					int Page = Integer.parseInt(txtPages.getText());
+					String Author = txtAuthor.getText();
+					int ISBN = Integer.parseInt(txtISBN.getText());
+					String BookType = txtBookType.getText();
+					String BookStat = txtStatus.getText();
+					tx = session.beginTransaction();
+					book.setBookname(BookName);
+					book.setPage(Page);
+					book.setAuthor(Author);
+					book.setIsbn(ISBN);
+					book.setBooktype(BookType);
+					book.setBookstatus(BookStat);
+					session.update(book);
+					tx.commit();
+					JOptionPane.showMessageDialog(null, "Book With ID " + book.getBookid() + "Is Updated");
+					tblRefresh();
+					clearText();
+				}
 			}
 		});
 		btnEdit.setBounds(152, 356, 131, 33);
@@ -310,27 +337,32 @@ public class BookList extends JFrame {
 			Session session = Database.getSession();
 			Transaction tx = null;
 			public void actionPerformed(ActionEvent e) {
-				try {
-					tx = session.beginTransaction();
-					int BookID = Integer.parseInt(txtBookID.getText());
-					String sql ="SELECT BookID AS bookid, "
-							+ "BookName AS bookname, Page AS page, "
-							+ "Author AS author, ISBN AS isbn, BookType AS booktype, BookStatus AS bookstatus FROM Books "
-							+ "WHERE id = :bid";
-					Query query = session.createSQLQuery(sql);
-					query.setParameter("bid",BookID);
-					query.setResultTransformer(Transformers.aliasToBean(Books.class));
-					Books book = (Books)query.uniqueResult();
-					System.out.println("id to delete " + book.getBookid());
-					session.delete(book);
-					tx.commit();
-					JOptionPane.showMessageDialog(null, "ID with " + book.getBookid() + " Deleted");
-					tblRefresh();
+				if(txtBookID.getText().trim().isEmpty() && txtBookName.getText().trim().isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Please Select a Student to Delete");
 					clearText();
-				}catch(Exception ex) {
-					ex.printStackTrace();
+				}else {
+					try {
+						tx = session.beginTransaction();
+						int BookID = Integer.parseInt(txtBookID.getText());
+						String sql ="SELECT BookID AS bookid, "
+								+ "BookName AS bookname, Page AS page, "
+								+ "Author AS author, ISBN AS isbn, BookType AS booktype, BookStatus AS bookstatus FROM Books "
+								+ "WHERE id = :bid";
+						Query query = session.createSQLQuery(sql);
+						query.setParameter("bid",BookID);
+						query.setResultTransformer(Transformers.aliasToBean(Books.class));
+						Books book = (Books)query.uniqueResult();
+						System.out.println("id to delete " + book.getBookid());
+						session.delete(book);
+						tx.commit();
+						JOptionPane.showMessageDialog(null, "ID with " + book.getBookid() + " Deleted");
+						tblRefresh();
+						clearText();
+					}catch(Exception ex) {
+						ex.printStackTrace();
+					}
 				}
-			}
+				}
 		});
 		btnDeleteBook.setBounds(315, 356, 131, 33);
 		contentPane.add(btnDeleteBook);
@@ -346,5 +378,29 @@ public class BookList extends JFrame {
 		});
 		btnBack.setBounds(500, 8, 89, 33);
 		contentPane.add(btnBack);
+		
+	
+		cboBookType.addActionListener(new ActionListener() {
+			Transaction tx = null;
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Session session = Database.getSession();
+					String sql ="SELECT BookTypeID AS booktypeid, "
+							+ "BookType AS booktype FROM BookType";
+					Query query = session.createSQLQuery(sql);
+					query.setResultTransformer(Transformers.aliasToBean(BookType.class));
+					List<BookType> StandList = query.list();
+					for(BookType strand : StandList) {
+						cboBookType.addItem(strand.getBooktype());
+					}
+					String selectedCourse = cboBookType.getSelectedItem().toString();
+					txtBookType.setText(selectedCourse);
+				}catch(Exception ex) {
+					
+				}
+			}
+		});
+		cboBookType.setBounds(456, 268, 133, 22);
+		contentPane.add(cboBookType);
 	}
 }

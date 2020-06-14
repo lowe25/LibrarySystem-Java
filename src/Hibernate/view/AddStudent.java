@@ -59,10 +59,13 @@ public class AddStudent extends JFrame {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
+		AddStudent view = new AddStudent();
 		AddBook ab = new AddBook();
+		BookList booklist = new BookList();
 		ab.cboType();
-		comboCourse();
-		comboStrand();
+		view.comboCourse();
+		view.comboStrand();
+		booklist.cboType();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {

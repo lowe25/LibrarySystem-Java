@@ -51,11 +51,13 @@ public class AddBook extends JFrame {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		ViewStudents view = new ViewStudents();
+		AddStudent view = new AddStudent();
 		AddBook ab = new AddBook();
+		BookList booklist = new BookList();
 		ab.cboType();
 		view.comboCourse();
 		view.comboStrand();
+		booklist.cboType();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -160,17 +162,7 @@ public class AddBook extends JFrame {
 		tblBookList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				DefaultTableModel model = (DefaultTableModel)tblBookList.getModel();
-			      JTable target = (JTable)e.getSource();
-			      int row = target.getSelectedRow();
-			      int column = target.getSelectedColumn();
-			      txtBookID.setText(model.getValueAt(row, 0).toString());
-			      txtBookName.setText(model.getValueAt(row, 1).toString());
-			      txtBookPages.setText(model.getValueAt(row, 2).toString());
-			      txtAuthor.setText(model.getValueAt(row, 3).toString());
-			     txtISBN.setText(model.getValueAt(row, 4).toString());
-			      txtBookType.setText(model.getValueAt(row, 5).toString());
-			      txtBookStatus.setText(model.getValueAt(row, 6).toString());
+				
 			}
 		});
 		scrollPane.setViewportView(tblBookList);
@@ -290,47 +282,50 @@ public class AddBook extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				Session session = Database.getSession();
 				Transaction tx = null;
-				
-				try {
-					String sql ="SELECT StatusID AS statusid, "
-							+ "Status AS status FROM Status "
-							+ "WHERE StatusID = :id ";
-					     Query query = session.createSQLQuery(sql);
-					     query.setParameter("id", 1);
-					     query.setResultTransformer(Transformers.aliasToBean(BookStatus.class));
-					     List<BookStatus> statusList = query.list();
-					     String status = null;
-					     for(BookStatus stat : statusList) {
-					    	 status = stat.getStatus();
-					     }
-					tx = session.beginTransaction();
-					String BookName = txtBookName.getText();
-					int Page = Integer.parseInt(txtBookPages.getText());
-					String Author = txtAuthor.getText();
-					int ISBN = Integer.parseInt(txtISBN.getText());
-					String BookType = txtBookType.getText();
-					String BookStat = txtBookStatus.getText();
-					//
-					Books books = new Books();
-					BookStatus bookstata = new BookStatus();
-					books.setBookname(BookName);
-					books.setPage(Page);
-					books.setAuthor(Author);
-					books.setIsbn(ISBN);
-					books.setBooktype(BookType);
-					books.setBookstatus(status);
-					Integer id = (Integer)session.save(books);
-					tx.commit();
-					JOptionPane.showMessageDialog(null, "Book Added");
-					tblRefresh();
-					clearText();
-				}catch(Exception ex)
-				{
-					if (tx != null) {
-						tx.rollback();
+				 if(txtBookName.getText().trim().isEmpty()) {
+					 JOptionPane.showMessageDialog(null, "Please Fill in the Required Fields Before Adding");
+				 }else {
+					try {
+						String sql ="SELECT StatusID AS statusid, "
+								+ "Status AS status FROM Status "
+								+ "WHERE StatusID = :id ";
+						     Query query = session.createSQLQuery(sql);
+						     query.setParameter("id", 1);
+						     query.setResultTransformer(Transformers.aliasToBean(BookStatus.class));
+						     List<BookStatus> statusList = query.list();
+						     String status = null;
+						     for(BookStatus stat : statusList) {
+						    	 status = stat.getStatus();
+						     }
+						tx = session.beginTransaction();
+						String BookName = txtBookName.getText();
+						int Page = Integer.parseInt(txtBookPages.getText());
+						String Author = txtAuthor.getText();
+						int ISBN = Integer.parseInt(txtISBN.getText());
+						String BookType = txtBookType.getText();
+						String BookStat = txtBookStatus.getText();
+						//
+						Books books = new Books();
+						BookStatus bookstata = new BookStatus();
+						books.setBookname(BookName);
+						books.setPage(Page);
+						books.setAuthor(Author);
+						books.setIsbn(ISBN);
+						books.setBooktype(BookType);
+						books.setBookstatus(status);
+						Integer id = (Integer)session.save(books);
+						tx.commit();
+						JOptionPane.showMessageDialog(null, "Book Added");
+						tblRefresh();
+						clearText();
+					}catch(Exception ex)
+					{
+						if (tx != null) {
+							tx.rollback();
+						}
+						ex.printStackTrace();
 					}
-					ex.printStackTrace();
-				}
+				 }	 
 			}
 		});
 		btnAddBook.setBounds(104, 374, 109, 33);

@@ -59,9 +59,11 @@ public class ReserveBook extends JFrame {
 	public static void main(String[] args) {
 		AddStudent view = new AddStudent();
 		AddBook ab = new AddBook();
+		BookList booklist = new BookList();
 		ab.cboType();
 		view.comboCourse();
 		view.comboStrand();
+		booklist.cboType();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -185,54 +187,59 @@ public class ReserveBook extends JFrame {
 			Transaction tx = null;
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			public void actionPerformed(ActionEvent e) {
-	            try {
-	            	String sql ="SELECT BookID AS bookid, "
-							+ "BookName AS bookname, Page AS page, Author AS author, "
-							+ "BookType AS booktype, ISBN AS isbn, BookStatus AS bookstatus FROM Books "
-							+ "WHERE BookID = :bid ";
-					     Query query = session.createSQLQuery(sql);
-					     int bookid = Integer.parseInt(txtBookID.getText());
-					     query.setParameter("bid", bookid);
-					     query.setResultTransformer(Transformers.aliasToBean(Books.class));
-					     Books books = (Books)query.uniqueResult();
-	            	//
-	            	String sql1 ="SELECT StatusID AS statusid, "
-							+ "Status AS status FROM Status "
-							+ "WHERE StatusID = :id ";
-					     Query query1 = session.createSQLQuery(sql1);
-					     query1.setParameter("id", 4);
-					     query1.setResultTransformer(Transformers.aliasToBean(BookStatus.class));
-					     List<BookStatus> statusList = query1.list();
-					     String status = null;
-					     for(BookStatus stat : statusList) {
-					    	 status = stat.getStatus();
-					     }
-					//
-					 	tx = session.beginTransaction();
-					 	//int bookid = Integer.parseInt(txtBookID.getText());
-					 	String bookname = txtBookName.getText();
-					 	String booktype = txtBookType.getText();
-					 	String bookstatus = txtBookStatus.getText();
-					 	int studentid = Integer.parseInt(txtStudentID.getText());
-					 	String fullname = txtFullname.getText();
-					 	int contact = Integer.parseInt(txtContact.getText());
-					 	//
-					 	Reserves res = new Reserves();
-					 	res.setBookid(bookid);
-					 	res.setBookname(bookname);
-					 	res.setBooktype(booktype);
-					 	res.setStudentid(studentid);
-					 	res.setFullname(fullname);
-					 	res.setContact(contact);
-					 	books.setBookstatus(status);
-					 	res.setBookstatus(status);
-					 	Integer id = (Integer)session.save(res);
-					 	session.update(books);
-					 	tx.commit();
-					 	JOptionPane.showMessageDialog(null, "Book Reserved");
-			}catch(Exception ex) {
 				
-			}
+				if(txtBookID.getText().trim().isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Please Select a Book to Reserve");
+				}else {
+					try {
+		            	String sql ="SELECT BookID AS bookid, "
+								+ "BookName AS bookname, Page AS page, Author AS author, "
+								+ "BookType AS booktype, ISBN AS isbn, BookStatus AS bookstatus FROM Books "
+								+ "WHERE BookID = :bid ";
+						     Query query = session.createSQLQuery(sql);
+						     int bookid = Integer.parseInt(txtBookID.getText());
+						     query.setParameter("bid", bookid);
+						     query.setResultTransformer(Transformers.aliasToBean(Books.class));
+						     Books books = (Books)query.uniqueResult();
+		            	//
+		            	String sql1 ="SELECT StatusID AS statusid, "
+								+ "Status AS status FROM Status "
+								+ "WHERE StatusID = :id ";
+						     Query query1 = session.createSQLQuery(sql1);
+						     query1.setParameter("id", 4);
+						     query1.setResultTransformer(Transformers.aliasToBean(BookStatus.class));
+						     List<BookStatus> statusList = query1.list();
+						     String status = null;
+						     for(BookStatus stat : statusList) {
+						    	 status = stat.getStatus();
+						     }
+						//
+						 	tx = session.beginTransaction();
+						 	//int bookid = Integer.parseInt(txtBookID.getText());
+						 	String bookname = txtBookName.getText();
+						 	String booktype = txtBookType.getText();
+						 	String bookstatus = txtBookStatus.getText();
+						 	int studentid = Integer.parseInt(txtStudentID.getText());
+						 	String fullname = txtFullname.getText();
+						 	int contact = Integer.parseInt(txtContact.getText());
+						 	//
+						 	Reserves res = new Reserves();
+						 	res.setBookid(bookid);
+						 	res.setBookname(bookname);
+						 	res.setBooktype(booktype);
+						 	res.setStudentid(studentid);
+						 	res.setFullname(fullname);
+						 	res.setContact(contact);
+						 	books.setBookstatus(status);
+						 	res.setBookstatus(status);
+						 	Integer id = (Integer)session.save(res);
+						 	session.update(books);
+						 	tx.commit();
+						 	JOptionPane.showMessageDialog(null, "Book Reserved");
+				}catch(Exception ex) {
+					
+				}
+				}
 			}
 		});
 		btnBorrow.setFont(new Font("Tahoma", Font.BOLD, 10));

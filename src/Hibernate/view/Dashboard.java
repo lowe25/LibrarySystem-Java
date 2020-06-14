@@ -22,9 +22,11 @@ public class Dashboard extends JFrame {
 	public static void main(String[] args) {
 		AddStudent view = new AddStudent();
 		AddBook ab = new AddBook();
+		BookList booklist = new BookList();
 		ab.cboType();
 		view.comboCourse();
 		view.comboStrand();
+		booklist.cboType();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
